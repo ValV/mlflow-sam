@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Check if .env file exists
+if [ ! -f .env ]; then
+    echo "Error: .env file not found!"
+    exit 1
+fi
+
+# Load environment variables from .env file
+while IFS= read -r line; do
+    # Skip empty lines and comments
+    [[ -z "$line" || "$line" =~ ^# ]] && continue
+    # Export the variable
+    export "$line"
+done < .env
+
+# Default model name
+MODEL="MLflow-Segment-Anything-SAM-b+cpu/latest"
+# First argument is a model name
+MODEL=${1:-$MODEL}
+# Second argument is a port number
+PORT=${2:-10055}
+
+# Env manager set to `local` implies that MLflow will not try
+# to create any enviroment, but use local active environment (conda, pyenv, venv, etc)
+mlflow models serve -m "models:/$MODEL" -p "$PORT" --env-manager local --timeout 1440
+
